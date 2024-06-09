@@ -164,7 +164,7 @@ class grid:
         self.active = active
         self.Theta = Theta
         
-        self.G = nx.from_scipy_sparse_matrix(self.A, edge_attribute='weight', parallel_edges=False)
+        self.G = nx.from_scipy_sparse_array(self.A, edge_attribute='weight', parallel_edges=False)
 
   
         self.x = T.cat((T.from_numpy(self.active).unsqueeze(1), \
