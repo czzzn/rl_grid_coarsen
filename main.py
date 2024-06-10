@@ -31,6 +31,7 @@ if __name__ == '__main__':
 
     for lr in lr_list:
         for dim in dim_list:
+
             
             agent = Agent(dim = 32, K = K, gamma = 1, epsilon = 1,
                   lr= lr, mem_size = 5000, batch_size = 32,
@@ -49,6 +50,7 @@ if __name__ == '__main__':
                 g_idx = np.random.randint(0,50)
                 
                 grid_ = rand_grid_gen(None)
+                print("main53/grid_",grid_)
                 agent.decrement_epsilon()
                 while not done:
                     

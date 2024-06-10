@@ -490,9 +490,9 @@ def lloyd_aggregation(C, ratio=0.03, distance='unit', maxiter=10):
         data = abs(C.data)
     elif distance == 'inv':
         data = 1.0/abs(C.data)
-    elif distance is 'same':
+    elif distance == 'same':
         data = C.data
-    elif distance is 'min':
+    elif distance == 'min':
         data = C.data - C.data.min()
     else:
         raise ValueError('unrecognized value distance=%s' % distance)
@@ -559,7 +559,7 @@ def rand_Amesh_gen(mesh):
         )
         
         prob = np.random.random()
-        if prob>5:
+        if prob>.5:
             
             min_ = 0.005+0.01*np.random.random()
             min_sz  = 0.1#/(min_**0.1)
@@ -576,12 +576,19 @@ def rand_Amesh_gen(mesh):
     
     
     mymsh = MyMesh(mesh)
-    # points = mymsh.V
-    # tri = Delaunay(points)
-    # plt.triplot(points[:,0], points[:,1], tri.simplices)
-    # plt.plot(points[:,0], points[:,1], 'o')
+
+    #plot the mesh
+    #points = mymsh.V
+    #tri = Delaunay(points)
+    #plt.figure(figsize=(8, 8))
+    #plt.triplot(points[:,0], points[:,1], tri.simplices)
+    #plt.plot(points[:,0], points[:,1], 'o')
+    #plt.gca().set_aspect('equal')
+    #plt.title("Generated Mesh")
+    #plt.show()
     
     A,b = fem.gradgradform(mymsh, kappa=None, f=None, degree=1)
+    print("Unstructured591/A,b", A.shape, b.shape)
     
     return A, mymsh
 
@@ -593,6 +600,7 @@ def rand_Amesh_gen(mesh):
 
 def rand_grid_gen(mesh):
     
+    print("unstructured596/rand_grid_gen:",mesh)
     A, mymsh = rand_Amesh_gen(mesh)
     fine_nodes = [i for i in range(A.shape[0])]
     

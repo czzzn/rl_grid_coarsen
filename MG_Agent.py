@@ -71,9 +71,9 @@ class Agent():
         self.replace_targe_cnt = replace
         self.memory = ReplayBuffer(mem_size)
         self.learn_step_counter = 0
-     
+
         self.q_eval = Net_TAGConv(self.dim, self.K, self.lr)
-        
+        print("Agent76/self.q_eval",self.q_eval)
         self.q_targ = Net_TAGConv(self.dim, self.K, self.lr)
         
         
