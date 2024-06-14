@@ -559,7 +559,7 @@ def rand_Amesh_gen(mesh):
         )
         
         prob = np.random.random()
-        if prob>.5:
+        if prob>5: #ERROR HERE: SHOULD BE .5, BUT EXE WILL GEN ERROR
             
             min_ = 0.005+0.01*np.random.random()
             min_sz  = 0.1#/(min_**0.1)
@@ -588,7 +588,7 @@ def rand_Amesh_gen(mesh):
     #plt.show()
     
     A,b = fem.gradgradform(mymsh, kappa=None, f=None, degree=1)
-    print("Unstructured591/A,b", A.shape, b.shape)
+    #print("Unstructured591/A,b", A.shape, b.shape)
     
     return A, mymsh
 
@@ -600,7 +600,7 @@ def rand_Amesh_gen(mesh):
 
 def rand_grid_gen(mesh):
     
-    print("unstructured596/rand_grid_gen:",mesh)
+    #print("unstructured603/rand_grid_gen:",mesh)
     A, mymsh = rand_Amesh_gen(mesh)
     fine_nodes = [i for i in range(A.shape[0])]
     

@@ -50,7 +50,7 @@ if __name__ == '__main__':
                 g_idx = np.random.randint(0,50)
                 
                 grid_ = rand_grid_gen(None)
-                print("main53/grid_",grid_)
+                #print("main53/grid_",grid_)
                 agent.decrement_epsilon()
                 while not done:
                     

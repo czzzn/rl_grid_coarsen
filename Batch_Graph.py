@@ -40,7 +40,10 @@ class Batch(Data):
         :obj:`follow_batch`.
         Will exclude any keys given in :obj:`exclude_keys`."""
 
-        keys = list(set(data_list[0].keys) - set(exclude_keys))
+        #print("BG43/exclude_keys:",exclude_keys)
+        #print("BG44/data_list[0].keys:", data_list[0].keys)
+
+        keys = list(set(data_list[0].keys()) - set(exclude_keys))
         assert 'batch' not in keys and 'ptr' not in keys
 
         batch = cls()
@@ -139,7 +142,7 @@ class Batch(Data):
         batch.__num_nodes_list__ = num_nodes_list
 
         ref_data = data_list[0]
-        for key in batch.keys:
+        for key in batch.keys():
             items = batch[key]
             item = items[0]
             if isinstance(item, Tensor):

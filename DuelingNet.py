@@ -29,7 +29,7 @@ class Net(T.nn.Module):
 
     def forward(self, D, b_states = None):
         
-        print("DuelingNet32/b_states",b_states)
+        #print("DuelingNet32/b_states",b_states)
    
         x, edge_index, edge_attr = D.x, D.edge_index, D.edge_attr
      
