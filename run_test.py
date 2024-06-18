@@ -8,6 +8,7 @@ from Scott_greedy import greedy_coarsening
 import copy
 import random
 import matplotlib.pyplot as plt
+from scipy.spatial import ConvexHull, Delaunay
 
 PATH = "/content/rl_grid_coarsen/Model"
 
@@ -65,5 +66,56 @@ def run_test(K, dim, costum_grid, model_dir):
     grid_gr = greedy_coarsening(grid_gr)
     
     return  grid_, grid_gr, Q_list, A_list, Ahat_list
+
+# Step 3: Define a mesh size function for graded mesh
+def mesh_size_function(x, y):
+    center = np.array([0.5, 0.5])
+    point = np.array([x, y])
+    distance_to_center = np.linalg.norm(point - center)
+    return 0.01 + 0.09 * distance_to_center  # Increased coefficient for more variation  
+
+def gen_graded_mesh(num_nodes):
+    # Step 1: Generate random points and compute the convex hull
+    points = np.random.rand(10, 2)
+    hull = ConvexHull(points)
+
+    # Step 2: Perform Delaunay triangulation on the points
+    tri = Delaunay(points)
+
+    # Step 4: Use pygmsh to create the mesh based on the triangulation with graded mesh sizes
+    with pygmsh.geo.Geometry() as geom:
+        # Add points to pygmsh geometry with graded mesh sizes
+        geom_points = [geom.add_point([p[0], p[1], 0], mesh_size=mesh_size_function(p[0], p[1])) for p in points]
+
+      # Add lines and surfaces from Delaunay triangulation
+      for simplex in tri.simplices:
+          p1, p2, p3 = simplex
+          line1 = geom.add_line(geom_points[p1], geom_points[p2])
+          line2 = geom.add_line(geom_points[p2], geom_points[p3])
+          line3 = geom.add_line(geom_points[p3], geom_points[p1])
+          loop = geom.add_curve_loop([line1, line2, line3])
+          surface = geom.add_plane_surface(loop)
+    
+      # Generate the mesh
+      mesh = geom.generate_mesh()
+
+def mesh_to_grid(mesh):
+    # generate grid object from a customized mesh
+    # input mesh: mesh object from geom.generate_mesh
+
+    msh = MyMesh(mesh)
+    A, b = fem.gradgradform(mymsh, kappa=None, f=None, degree=1)
+    
+    fine_nodes = [i for i in range(A.shape[0])]
+    
+    #set_of_edge = set_edge_from_msh(mymsh)
+    grid = grid(A,fine_nodes,[],mymsh,0.56)
+
+    return grid
+
+
+
+
+
 
     
