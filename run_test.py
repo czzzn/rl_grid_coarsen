@@ -9,11 +9,14 @@ import copy
 import random
 import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull, Delaunay
+import numpy as np
+from scipy.spatial import ConvexHull, Delaunay
+import pygmsh
 
 PATH = "/content/rl_grid_coarsen/Model"
 
 
-def run_test(K, dim, costum_grid, model_dir):
+def my_test(K, dim, costum_grid, model_dir):
     
     K= 4
     agent = Agent(dim = dim, K = K, gamma = 1, epsilon = 1, \
@@ -76,7 +79,7 @@ def mesh_size_function(x, y):
 
 def gen_graded_mesh(num_nodes):
     # Step 1: Generate random points and compute the convex hull
-    points = np.random.rand(10, 2)
+    points = np.random.rand(num_nodes, 2)
     hull = ConvexHull(points)
 
     # Step 2: Perform Delaunay triangulation on the points
@@ -87,31 +90,33 @@ def gen_graded_mesh(num_nodes):
         # Add points to pygmsh geometry with graded mesh sizes
         geom_points = [geom.add_point([p[0], p[1], 0], mesh_size=mesh_size_function(p[0], p[1])) for p in points]
 
-      # Add lines and surfaces from Delaunay triangulation
-      for simplex in tri.simplices:
-          p1, p2, p3 = simplex
-          line1 = geom.add_line(geom_points[p1], geom_points[p2])
-          line2 = geom.add_line(geom_points[p2], geom_points[p3])
-          line3 = geom.add_line(geom_points[p3], geom_points[p1])
-          loop = geom.add_curve_loop([line1, line2, line3])
-          surface = geom.add_plane_surface(loop)
+        # Add lines and surfaces from Delaunay triangulation
+        for simplex in tri.simplices:
+            p1, p2, p3 = simplex
+            line1 = geom.add_line(geom_points[p1], geom_points[p2])
+            line2 = geom.add_line(geom_points[p2], geom_points[p3])
+            line3 = geom.add_line(geom_points[p3], geom_points[p1])
+            loop = geom.add_curve_loop([line1, line2, line3])
+            surface = geom.add_plane_surface(loop)
     
-      # Generate the mesh
-      mesh = geom.generate_mesh()
+        # Generate the mesh
+        mesh = geom.generate_mesh()
+        
+    return mesh
 
 def mesh_to_grid(mesh):
     # generate grid object from a customized mesh
     # input mesh: mesh object from geom.generate_mesh
 
     msh = MyMesh(mesh)
-    A, b = fem.gradgradform(mymsh, kappa=None, f=None, degree=1)
+    A, b = fem.gradgradform(msh, kappa=None, f=None, degree=1)
     
     fine_nodes = [i for i in range(A.shape[0])]
     
     #set_of_edge = set_edge_from_msh(mymsh)
-    grid = grid(A,fine_nodes,[],mymsh,0.56)
+    mygrid = grid(A,fine_nodes,[],msh,0.56)
 
-    return grid
+    return mygrid
 
 
 
