@@ -12,6 +12,8 @@ from scipy.spatial import ConvexHull, Delaunay
 import numpy as np
 from scipy.spatial import ConvexHull, Delaunay
 import pygmsh
+import scipy.sparse as sp
+from scipy.sparse.linalg import inv, eigs
 
 PATH = "/content/rl_grid_coarsen/Model"
 
@@ -117,6 +119,69 @@ def mesh_to_grid(mesh):
     mygrid = grid(A,fine_nodes,[],msh,0.56)
 
     return mygrid
+
+def grid_quality(A,grid):
+    """
+    Calculate the grid quality measure for an algebraic multigrid method.
+
+    This function computes the measure as defined in "On Generalizing the Algebraic Multigrid Framework"
+    by Robert D. Falgout and Panayot S. Vassilevski. 
+
+    Parameters:
+    ----------
+    A : csr_matrix
+        The coefficient matrix of the linear system, expected to be sparse.
+    grid : Grid class instance from Unstructured.py
+        The grid object containing the mesh details like fine and coarse nodes.
+
+    Returns:
+    ------- 
+    mu : float
+        The computed grid quality. 
+
+    Raises:
+    ------
+    LinAlgError
+        If the matrix inversion fails or the eigenvalue solver does not converge.
+
+    Examples:
+    --------
+    >>> grid = Grid(...)  # assuming an appropriate Grid class and constructor
+    >>> A = grid.A # A is a sparse matrix in csr format
+    >>> cr_value = cr_measure(A, grid)
+    >>> print(f"CR Measure: {cr_value}")
+
+    Notes:
+    -----
+    The function uses sparse matrix operations to ensure efficiency on large matrices. Ensure that the input matrix `A`
+    is properly formatted as a csr_matrix for optimal performance.
+    """
+    nf = len(grid.fine_nodes)
+    nc = grid.num_nodes - nf
+
+    # Smoother S
+    S = sp.vstack([sp.eye(nf, format='csr'), sp.csr_matrix((nc, nf))])
+
+    # Matrix M is the diagonal part of A
+    M = sp.diags(A.diagonal())
+
+    # Compute X = M(M+M^T-A)^{-1}M^T
+    inner_matrix = M + M.T - A
+    M_inv = inv(inner_matrix)
+    X = M.dot(M_inv).dot(M.T)
+
+    # Compute S^T A S and S^T X S
+    ST_A_S = S.T.dot(A.dot(S))
+    ST_X_S = S.T.dot(X.dot(S))
+
+    # Compute the generalized eigenvalues
+    vals, _ = eigs(ST_X_S.dot(ST_A_S), k=1, which='SM', tol=1e-6, maxiter=10000)
+    lambda_min = vals.real[0]  # Smallest eigenvalue
+
+    # Compute the CR measure
+    mu = 1 / lambda_min if lambda_min != 0 else np.inf
+
+    return mu
 
 
 
