@@ -267,6 +267,10 @@ class grid:
         num_viol = len(violatings)
         
         return violatings, isviol, num_viol
+    
+    def compatible_relaxation(self):
+
+        return 
         
   
     def coarsen_node(self, node_a):
