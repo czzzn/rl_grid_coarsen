@@ -55,7 +55,7 @@ class MyMesh:
         self.num_edges = len(e)
         
       
-def structured(n_row, n_col, Theta):
+def structured(n_row, n_col, epsilon, theta, Theta):
     
     num_nodes = int(n_row*n_col)
 
@@ -66,8 +66,8 @@ def structured(n_row, n_col, Theta):
     nv = num_nodes
     N = [i for i in range(num_nodes)]
     
-    epsilon = 1
-    theta = 1 #param of A matrix
+    epsilon = epsilon
+    theta = theta #param of A matrix
    
     sten = diffusion_stencil_2d(epsilon=epsilon,theta=theta,type='FD')
     AA = stencil_grid(sten, (n_row, n_col), dtype=float, format='csr')

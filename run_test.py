@@ -19,6 +19,21 @@ PATH = "/content/rl_grid_coarsen/Model"
 
 
 def my_test(K, dim, costum_grid, model_dir):
+
+    """
+    To built costum_grid:
+    1. structured grid:
+      n_row = 20
+      n_col = 20
+      theta = 0 # rotation param for generating structured grid
+      epsilon = 100 # param for generating structured grid
+      Theta = 0.90 # the param to determine diagonal dominance
+
+      grid_ = structured(n_row, n_col, theta, epsilon, Theta)
+    2. graded mesh
+      mesh = gen_graded_mesh(20)
+      grid_ = mesh_to_grid(mesh)
+    """
     
     K= 4
     agent = Agent(dim = dim, K = K, gamma = 1, epsilon = 1, \
