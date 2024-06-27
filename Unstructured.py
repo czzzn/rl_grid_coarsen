@@ -270,6 +270,9 @@ class grid:
     
     def compatible_relaxation(self):
 
+        # self.active: fine node list
+        # self.A: adj matrix
+
         return 
         
   
