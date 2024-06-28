@@ -268,14 +268,40 @@ class grid:
         
         return violatings, isviol, num_viol
     
-    def compatible_relaxation(self):
-
+    def compatible_relaxation(self, e, threshold=0.7):
+        """
+        e: residual vector
+        threshold: threshold for choosing F/C splitting
+        """
         # self.active: fine node list
         # self.A: adj matrix
 
-        return 
-        
-  
+        # define smoother matrix using diagonal of A, dim = num_nodes by num_nodes
+        W = np.diag(self.A.diagonal())
+
+        # extract only active nodes from A and W
+        mask = np.outer(self.active, self.active)
+
+        A_active = self.A * mask
+        W_active = W * mask
+        Eye = np.eye(self.A.shape[0])
+
+        # cr iteration
+        e = (Eye - np.linalg.pinv(W_active) @ A_active) @ e
+
+        # calculate the number of nodes to select as candidates
+        num_candidates = int(len(e) * threshold)
+
+        # sort nodes by their e values in descending order and select top num_candidates
+        sorted_indices = np.argsort(-np.abs(e))
+        candidate_idx = sorted_indices[:num_candidates]
+
+        # build the is_candidate vector
+        is_candidate = np.zeros_like(self.active)
+        is_candidate[candidate_idx] = 1
+
+        return candidate_idx, is_candidate, num_candidates
+    
     def coarsen_node(self, node_a):
         
         #tkir1  = time.time()
