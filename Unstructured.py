@@ -234,6 +234,8 @@ class grid:
 
         violatings = []
         isviol = []
+
+        print("viol_nodes:", violatings, isviol)
         
         for node in range(self.num_nodes):
             
@@ -265,42 +267,51 @@ class grid:
                 isviol.append(0)
         
         num_viol = len(violatings)
+
+        print("viol_nodes:", violatings, isviol)
         
         return violatings, isviol, num_viol
     
-    def compatible_relaxation(self, e, threshold=0.7):
+
+    def compatible_relaxation(self, e, threshold=0.5):
         """
         e: residual vector
-        threshold: threshold for choosing F/C splitting
+        threshold: threshold for choosing F/C splitting, \theta_cs
         """
         # self.active: fine node list
         # self.A: adj matrix
 
-        # define smoother matrix using diagonal of A, dim = num_nodes by num_nodes
+        # Define smoother matrix using diagonal of A, dim = num_nodes by num_nodes
         W = np.diag(self.A.diagonal())
 
-        # extract only active nodes from A and W
+        # Extract only active nodes from A and W
         mask = np.outer(self.active, self.active)
 
         A_active = self.A * mask
         W_active = W * mask
         Eye = np.eye(self.A.shape[0])
+        print("prev e:", e)
 
-        # cr iteration
+        # CR iteration
         e = (Eye - np.linalg.pinv(W_active) @ A_active) @ e
+        print("new e:", e)
 
-        # calculate the number of nodes to select as candidates
-        num_candidates = int(len(e) * threshold)
+        # Calculate the infinity norm of e
+        norm_e_inf = np.linalg.norm(e, np.inf)
 
-        # sort nodes by their e values in descending order and select top num_candidates
-        sorted_indices = np.argsort(-np.abs(e))
-        candidate_idx = sorted_indices[:num_candidates]
+        # Determine candidate nodes based on the threshold condition
+        is_candidate = (np.abs(e) / norm_e_inf) > threshold
 
-        # build the is_candidate vector
-        is_candidate = np.zeros_like(self.active)
-        is_candidate[candidate_idx] = 1
+        # Get indices of candidate nodes
+        candidate_idx = np.where(is_candidate)[0]
 
-        return candidate_idx, is_candidate, num_candidates
+        # Calculate the number of candidates
+        num_candidates = len(candidate_idx)
+
+        print("Unstructured309/candidate_idx", len(candidate_idx),candidate_idx)
+
+        return candidate_idx, is_candidate, num_candidates, e
+
     
     def coarsen_node(self, node_a):
         
@@ -317,10 +328,7 @@ class grid:
             if self.is_viol(neigh) == False and self.is_violating[neigh] == 1:
                 #self.violating_nodes.remove(neigh)
                 self.is_violating[neigh] = 0
-                newly_removed.append(neigh)
-
-                
-                
+                newly_removed.append(neigh)         
         
         self.data.x[node_a, 0]        = 0
         self.data.x[newly_removed, 1] = 0

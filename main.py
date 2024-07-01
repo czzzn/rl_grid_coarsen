@@ -48,26 +48,50 @@ if __name__ == '__main__':
 
                 done = False
                 g_idx = np.random.randint(0,50)
+                print("num_step:",i)
                 
                 grid_ = rand_grid_gen(None)
                 #print("main53/grid_",grid_)
                 agent.decrement_epsilon()
+
+                # init cr score as random vector
+                cr_prev = np.ones(grid_.num_nodes,)
+
                 while not done:
                     
                     observation = grid_.data
-                    list_viols = grid_.viol_nodes()[0]
-         
-                    action = agent.choose_action(observation, list_viols)
+                    # list_viols = grid_.viol_nodes()[0]
+                    candidate,_,_,cr_prev = grid_.compatible_relaxation(cr_prev)
+
+                    #action = agent.choose_action(observation, list_viols)
+                    action = agent.choose_action(observation, candidate)
                     grid_.coarsen_node(action)
+                    print("grid_.A:",grid_.A.shape)
+                    print("action:",action)
                     num_c_nodes = len(grid_.coarse_nodes)
-                    next_list_viols = grid_.viol_nodes()[0]
+                    print("num_c_nodes:", num_c_nodes)
+                    #next_list_viols = grid_.viol_nodes()[0]
+                    next_candidate,_,num_candidate,cr_current = grid_.compatible_relaxation(cr_prev)
+
                     next_observation = grid_.data
                     #reward = -100/grid_.num_nodes
-                    reward = -1#200*num_c_nodes/(grid_.num_nodes**2)
-                    done = True if grid_.viol_nodes()[2] == 0 else False
-                    agent.store_transition(observation, list_viols,\
+                    #reward = -1#200*num_c_nodes/(grid_.num_nodes**2)
+                    # use cr rate as reward function
+                    reward = np.linalg.norm(cr_current,2)/np.linalg.norm(cr_prev,2)
+                    print("cr_current:",np.linalg.norm(cr_current,2))
+                    print("cr_prev:",np.linalg.norm(cr_prev,2))
+                    print("reward", reward)
+                    print(error)
+                    #done = True if grid_.viol_nodes()[2] == 0 else False
+                    # done = True if num_candidate == 0 else False
+                    done = True if reward < 0.5 else False
+                    # agent.store_transition(observation, list_viols,\
+                    #                       None, action, reward,\
+                    #                       next_observation, next_list_viols,\
+                    #                       None, grid_.num_nodes, 1-int(done))
+                    agent.store_transition(observation, candidate,\
                                           None, action, reward,\
-                                          next_observation, next_list_viols,\
+                                          next_observation, next_candidate,\
                                           None, grid_.num_nodes, 1-int(done))
                         
                     if count % learn_every == 0:
